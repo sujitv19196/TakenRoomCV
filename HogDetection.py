@@ -6,40 +6,37 @@ import numpy as np
 import argparse
 import imutils
 import cv2
- 
+
 def detect(path):
-    # initialize the HOG descriptor/person detector
-    hog = cv2.HOGDescriptor()
-    hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-    cv2.startWindowThread()
+	# initialize the HOG descriptor/person detector
+	hog = cv2.HOGDescriptor()
+	hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+	cv2.startWindowThread()
 
-    image = cv2.imread(path)
-    
-    image = imutils.resize(image, width=min(400, image.shape[1]))
+	image = cv2.imread(path)
 
-    boxes, weights = hog.detectMultiScale(image, winStride=(4,4), padding=(8,8), scale=1.05)
-    boxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in boxes])
-    for (xA, yA, xB, yB) in boxes:
-        # display the detected boxes in the colour pictures
-        cv2.rectangle(frame, (xA, yA), (xB, yB),
-                        (0, 255, 0), 2)
-    boxes = np.array([[x, y, x+w, y+h] for (x,y,w,h) in boxes])
-    pick = non_max_suppression(boxes, probs=None, overlapThresh=0.65)
+	image = imutils.resize(image, width=min(400, image.shape[1]))
 
-    for (xA, yA, xB, yB) in pick:
-        cv2.rectangle(frame, (xA, yA), (xB, yB),
-                        (0, 255, 0), 2)
-    
-    if (len(pick) > 0):
-        #send to updater 
+	# detect people in the image
+	(rects, weights) = hog.detectMultiScale(image, winStride=(2, 2),
+		padding=(8, 8), scale=1.05)
+ 
+	# apply non-maxima suppression to the bounding boxes using a
+	# fairly large overlap threshold to try to maintain overlapping
+	# boxes that are still people
+	rects = np.array([[x, y, x + w, y + h] for (x, y, w, h) in rects])
+	pick = non_max_suppression(rects, probs=None, overlapThresh=0.65)
+ 
+	# draw the final bounding boxes
+	for (xA, yA, xB, yB) in pick:
+		cv2.rectangle(image, (xA, yA), (xB, yB), (0, 255, 0), 2)
 
-    # Display the resulting frame
-    cv2.imshow('image',image)
-        
-    # When everything done, release the capture
-    cap.release()
+	# if (len(pick) > 0):
+	# 	#send to updater 
 
-    # finally, close the window
-    cv2.destroyAllWindows()
-    cv2.waitKey(1)
+	cv2.imshow('image', image)
+	cv2.waitKey(0)
+
+if __name__ == "__main__":
+	detect("persons/person_143.bmp")
 
