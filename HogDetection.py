@@ -37,6 +37,3 @@ def detect(path):
 	cv2.imshow('image', image)
 	cv2.waitKey(0)
 
-if __name__ == "__main__":
-	detect("persons/person_143.bmp")
-
